@@ -138,7 +138,7 @@ void run(std::istream& input, std::ostream& output)
     output << (result ? "YES" : "NO");
 }
 
-void testQueue()
+void testDeque()
 {
     {
         std::stringstream input;
@@ -179,7 +179,7 @@ void testQueue()
 
 
 int main() {
-    //testQueue();
+    //testDeque();
     run(std::cin, std::cout);
 
     return 0;
