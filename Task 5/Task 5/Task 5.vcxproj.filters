@@ -19,4 +19,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\yarik\Downloads\006">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

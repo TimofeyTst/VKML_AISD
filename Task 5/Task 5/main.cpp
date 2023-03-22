@@ -1,7 +1,16 @@
 ﻿#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cassert>
 
+
+//Группа людей называется современниками если был такой момент, когда они могли собраться вместе.
+//Для этого в этот момент каждому из них должно было уже исполниться 18 лет, но ещё не исполниться 
+//80 лет.Дан список Жизни Великих Людей.Необходимо получить максимальное количество современников.
+//В день 18летия человек уже может принимать участие в собраниях, а в день 80летия и в день
+//смерти уже не может.
+//Замечание.Человек мог не дожить до 18 - летия, либо умереть в день 18 - летия.В этих 
+//случаях принимать участие в собраниях он не мог.
 
 template<class T>
 class CmpDefault {
@@ -11,9 +20,8 @@ public:
 
 
 template<class T, class Compare = CmpDefault<T>>
-void merge(T* arr, size_t size, size_t from, size_t mid, size_t end, Compare cmp = CmpDefault<T>()) {
+void merge(T* arr, T* tmpArr, size_t size, size_t from, size_t mid, size_t end, Compare cmp = CmpDefault<T>()) {
     size_t i = from, j = mid + 1, k = from;
-    T* tmpArr = new T[size];
 
     while (i <= mid && j <= end) {
         if ( cmp(arr[i],arr[j]) ) {
@@ -35,18 +43,18 @@ void merge(T* arr, size_t size, size_t from, size_t mid, size_t end, Compare cmp
     for (size_t i = from; i <= end; ++i){
         arr[i] = tmpArr[i];
     }
-
-    delete[] tmpArr;
 }
 
 
 template<class T, class Compare = CmpDefault<T>>
 void mergeSort(T* arr, size_t size, Compare cmp = CmpDefault<T>()) {
+    T* tmpArr = new T[size];
     for (size_t i = 1; i < size; i *= 2){
         for (size_t j = 0; j < size - 1; j += 2 * i){
-            merge(arr, size, j, j + i - 1, std::min(j + 2 * i - 1, size - 1), cmp);
+            merge(arr, tmpArr, size, j, j + i - 1, std::min(j + 2 * i - 1, size - 1), cmp);
         }
     }
+    delete[] tmpArr;
 }
 
 
@@ -286,6 +294,12 @@ void testModerns() {
         input << "1 1 1990 1 1 2020\n";
         run(input, output);
         assert(output.str() == "1\n");
+    }
+    {
+        std::ifstream input("C:\\Users\\yarik\\Downloads\\006");
+        std::stringstream output;
+        run(input, output);
+        assert(output.str() == "194\n");
     }
 }
 
