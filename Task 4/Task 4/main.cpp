@@ -24,6 +24,14 @@ class Heap {
 public:
     Heap() : size_(0), capacity_(1), data_(new T[capacity_]) {}
 
+    // Добавляем конструктор, принимающий массив объектов T
+    Heap(const T* arr, size_t arr_size) : size_(arr_size), capacity_(arr_size), data_(new T[capacity_]) {
+        for (size_t i = 0; i < arr_size; i++) {
+            data_[i] = arr[i];
+        }
+        build_heap();
+    }
+
     ~Heap() {
         delete[] data_;
     }
@@ -92,6 +100,12 @@ private:
         }
     }
 
+    void build_heap() {
+        for (int i = size_ / 2 - 1; i >= 0; i--) {
+            sift_down(i);
+        }
+    }
+
     void sift_down(size_t index) {
         while (true) {
             size_t left_child_index = 2 * index + 1;
@@ -117,14 +131,13 @@ private:
 
 void run(std::istream& input, std::ostream& output) {
     int TotalUsers = 0, ShowUsers = 0;
-    Heap<User, CmpUsers> hp;
-
     input >> TotalUsers >> ShowUsers;
+    User* users = new User[TotalUsers];
+
     for (size_t i = 0; i < TotalUsers; ++i) {
-        User u1;
-        input >> u1.id >> u1.count;
-        hp.push(u1);
+        input >> users[i].id >> users[i].count;
     }
+    Heap<User, CmpUsers> hp(users, TotalUsers);
 
     // Чтобы вывести в возрастающем порядке, добавим записи 
     // в массив с конца, а потом выведем его
@@ -134,6 +147,7 @@ void run(std::istream& input, std::ostream& output) {
         output << ShowArr[i].id << " ";
     }
     delete[] ShowArr;
+    delete[] users;
 }
 
 
