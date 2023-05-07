@@ -151,14 +151,12 @@ private:
                 path.pop();
                 cur_node = balance(cur_node);
             }
+            return balance(min_node);
         }
         // Иначе попадаем в ситуацию, когда нода является минимальной, тогда достаточно будет вернуть ее
-
         // Возвращаем минимальный элемент
-        return min_node;
+        return balance(min_node);
     }
-
-
 
     Node* remove_node(Node* node, const T& key) {
         // Если узел не найден, возвращаем nullptr
@@ -202,7 +200,7 @@ private:
         if (node == nullptr) {
             return acc;
         }
-
+        
         if (cmp_(key, node->key)) {
             return get_place(node->left, key, acc);
         }
@@ -273,6 +271,20 @@ void testArmy() {
         input << "7\n1 100\n1 200\n1 50\n2 1\n2 1\n2 0\n1 150";
         run(input, output);
         assert(output.str() == "0\n0\n2\n0\n");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+        input << "4\n1 10\n1 15\n2 0\n1 13\n";
+        run(input, output);
+        assert(output.str() == "0\n0\n0\n");
+    }
+    {
+        std::stringstream input;
+        std::stringstream output;
+        input << "4\n1 15\n1 10\n2 0\n1 13\n";
+        run(input, output);
+        assert(output.str() == "0\n1\n0\n");
     }
 }
 
