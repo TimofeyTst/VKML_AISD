@@ -104,13 +104,13 @@ void BTree<T, Compare>::splitChild(Node* node, size_t pos) {
 	child->keys.resize(t_ - 1);  // уменьшаем количество ключей в child
 
 	node->children.resize(node->children.size() + 1);
-	for (size_t j = node->keys.size(); j > pos + 1; --j) {  // сдвигаем указатели вправо, чтобы освободить место для нового указателя
+	for (size_t j = node->children.size() - 1; j > pos + 1; --j) {  // сдвигаем указатели вправо, чтобы освободить место для нового указателя
 		node->children[j] = node->children[j - 1];
 	}
 	node->children[pos + 1] = new_child;  // добавляем указатель на новый узел-потомок
 
 	node->keys.resize(node->keys.size() + 1); // увеличиваем количество ключей в node
-	for (size_t j = node->keys.size(); j > pos + 1; --j) {  // сдвигаем ключи вправо, чтобы освободить место для нового ключа
+	for (size_t j = node->keys.size() - 1; j > pos; --j) {  // сдвигаем ключи вправо, чтобы освободить место для нового ключа
 		node->keys[j] = node->keys[j - 1];
 	}
 	node->keys[pos] = median_key;  // вставляем медианный ключ в node
@@ -196,6 +196,13 @@ void testBtree() {
 		input << "5\n9 8 7 6 5 4 3 2 1 0";
 		run(input, output);
 		assert(output.str() == "5 \n0 1 2 3 4 6 7 8 9 \n");
+	}
+	{
+		std::stringstream input;
+		std::stringstream output;
+		input << "2\n9 8 7 6 5 4 3 2 1 0";
+		run(input, output);
+		assert(output.str() == "6 \n2 4 8 \n0 1 3 5 7 9 \n");
 	}
 }
 
