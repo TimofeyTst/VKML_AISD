@@ -126,44 +126,63 @@ private:
     };
 
     Node* find_min_node(Node* node) {
+        // Находим крайний левый узел, начиная с данного узла
         while (node->left) {
             node = node->left;
         }
+        // Возвращаем крайний левый узел
         return node;
     };
 
+
     Node* remove_min_node(Node* node) {
+        // Если у узла нет левого потомка, то возвращаем его правого потомка
         if (!node->left) {
             return node->right;
         }
+        // Иначе рекурсивно удаляем левое поддерево и возвращаем сбалансированное дерево
         node->left = remove_min_node(node->left);
         return balance(node);
     };
 
-    Node* remove_node(Node* node, const T& key) {
-        if (!node) {
-            return nullptr;
+
+Node* remove_node(Node* node, const T& key) {
+    // Если узел не найден, возвращаем nullptr
+    if (!node) {
+        return nullptr;
+    }
+    // Если ключ меньше ключа узла, рекурсивно ищем удаляемый узел в левом поддереве
+    if (cmp_(key, node->key)) {
+        node->left = remove_node(node->left, key);
+    }
+    // Если ключ больше ключа узла, рекурсивно ищем удаляемый узел в правом поддереве
+    else if (cmp_(node->key, key)) {
+        node->right = remove_node(node->right, key);
+    }
+    // Если ключ узла совпадает с ключом, который нужно удалить
+    else {
+        // Сохраняем указатели на левый и правый потомков узла
+        Node* left = node->left;
+        Node* right = node->right;
+        // Освобождаем память удаляемого узла
+        delete node;
+        // Если у удаляемого узла нет правого потомка, возвращаем левого потомка (возможно, nullptr)
+        if (!right) {
+            return left;
         }
-        if (cmp_(key, node->key)) {
-            node->left = remove_node(node->left, key);
-        }
-        else if (cmp_(node->key, key)) {
-            node->right = remove_node(node->right, key);
-        }
-        else {
-            Node* left = node->left;
-            Node* right = node->right;
-            delete node;
-            if (!right) {
-                return left;
-            }
-            Node* min_node = find_min_node(right);
-            min_node->right = remove_min_node(right);
-            min_node->left = left;
-            return balance(min_node);
-        }
-        return balance(node);
-    };
+        // Иначе, находим крайний левый узел в правом поддереве
+        Node* min_node = find_min_node(right);
+        // Удаляем крайний левый узел в правом поддереве и сохраняем его правого потомка
+        min_node->right = remove_min_node(right);
+        // Присваиваем левому потомку удаленного узла левого потомка крайнего левого узла в правом поддереве
+        min_node->left = left;
+        // Возвращаем сбалансированное дерево
+        return balance(min_node);
+    }
+    // Возвращаем сбалансированное дерево
+    return balance(node);
+};
+
 
     int get_place(Node* node, const T& key, int acc) {
         if (node == nullptr) {
@@ -245,7 +264,7 @@ void testArmy() {
 
 int main()
 {
-    //testArmy();
-    run(std::cin, std::cout);
+    testArmy();
+    //run(std::cin, std::cout);
     return 0;
 }
