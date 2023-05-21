@@ -19,4 +19,17 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="001.in" />
+    <None Include="001.out" />
+    <None Include="004.in">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="004.out">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="001.txt" />
+  </ItemGroup>
 </Project>

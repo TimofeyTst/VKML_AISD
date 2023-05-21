@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <fstream>
 #include <stack>
 #include <cassert>
 #include <sstream>
@@ -126,36 +127,15 @@ private:
         return balance(node);
     };
 
-    Node* find_and_remove_min_node(Node* node) {
+    Node* find_and_remove_min_node(Node* node, Node *&min_node) {
         // Если дерево пустое, возвращаем nullptr
-        if (!node) {
-            return nullptr;
+        if (!node->left) {
+            min_node = node; // Сохраняем min_node, переданный по ссылке
+            return node->right;
         }
-
-        Node* min_node = node;
-        Node* parent = nullptr;
-        std::stack<Node*> path;
-
-        // Находим минимальный узел и сохраняем путь к нему в стек
-        while (min_node->left) {
-            path.push(min_node);
-            parent = min_node;
-            min_node = min_node->left;
-        }
-
-        if (parent) {
-            parent->left = min_node->right; // Удаляем связь min_node с деревом
-            // Раскручиваем стек и балансируем дерево на каждом уровне
-            while (!path.empty()) {
-                Node* cur_node = path.top();
-                path.pop();
-                cur_node = balance(cur_node);
-            }
-            return balance(min_node);
-        }
-        // Иначе попадаем в ситуацию, когда нода является минимальной, тогда достаточно будет вернуть ее
-        // Возвращаем минимальный элемент
-        return balance(min_node);
+        // Иначе рекурсивно удаляем дерево, передавая переменную, в которую требуется сохранить ноду
+        node->left = find_and_remove_min_node(node->left, min_node);
+        return balance(node);
     }
 
     Node* remove_node(Node* node, const T& key) {
@@ -182,13 +162,11 @@ private:
             if (!right) {
                 return left;
             }
-            Node* min_node = find_and_remove_min_node(right);
+            Node* min_node = nullptr;
+            right = find_and_remove_min_node(right, min_node);
+            min_node->right = right;
             // Присваиваем левому потомку удаленного узла левого потомка крайнего левого узла в правом поддереве
             min_node->left = left;
-            // Присваеваем правому потомку только если они не равны
-            if (min_node != right) {
-                min_node->right = right;
-            }
             // Возвращаем сбалансированное дерево
             return balance(min_node);
         }
@@ -285,6 +263,37 @@ void testArmy() {
         input << "4\n1 15\n1 10\n2 0\n1 13\n";
         run(input, output);
         assert(output.str() == "0\n1\n0\n");
+    }
+    {
+        std::ifstream input_file("001.in");
+        std::stringstream output;
+        run(input_file, output);
+
+        std::ifstream expected_output_file("001.txt");
+        std::stringstream expected_output;
+        expected_output_file.seekg(0);
+        expected_output << expected_output_file.rdbuf();
+        
+        assert(output.str() == expected_output.str());
+    }
+    {
+        std::ifstream input_file("004.in");
+        std::stringstream output;
+        run(input_file, output);
+
+        std::ifstream expected_output_file("004.out");
+        std::string data;
+        std::string expected_output;
+        while (expected_output_file >> data) {
+            expected_output += data + "\n";
+        }
+
+        std::ofstream result_file("result.txt");
+        //result_file << expected_output;
+        result_file << output.str();
+        result_file.close();
+
+        assert(output.str() == expected_output);
     }
 }
 
