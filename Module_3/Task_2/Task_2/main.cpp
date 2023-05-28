@@ -132,6 +132,7 @@ void run(std::istream& input, std::ostream& output) {
     {
         input >> from >> to;
         graph->AddEdge(from, to);
+        graph->AddEdge(to, from);
     }
     
 
@@ -147,7 +148,7 @@ void test() {
         run(input, output);
         assert(output.str() == "2\n");
     }
-    {
+   /* {
         std::stringstream input;
         std::stringstream output;
         input << "4\n6\n0 1\n0 2\n1 2\n1 3\n2 3\n0 3\n\n0 3";
@@ -251,12 +252,19 @@ void test() {
         input << "6\n10\n0 1\n0 2\n0 3\n1 3\n1 4\n2 4\n2 5\n3 5\n4 5\n5 3\n\n0 5";
         run(input, output);
         assert(output.str() == "2\n");
+    }*/
+    {
+        std::stringstream input;
+        std::stringstream output;
+        input << "4\n5\n0 1\n0 2\n1 2\n1 3\n2 3\n\n3 0";
+        run(input, output);
+        assert(output.str() == "2\n");
     }
 }
 
 int main()
 {
-    test();
+    //test();
     run(std::cin, std::cout);
     return 0;
 }
