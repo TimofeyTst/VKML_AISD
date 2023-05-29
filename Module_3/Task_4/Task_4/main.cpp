@@ -1,14 +1,13 @@
 #include <iostream>
 #include <cassert>
 #include <sstream>
-#include <vector>
 
-#include<array>
-#include<cassert>
-#include<queue>
-#include<iostream>
-#include<string>
-#include<unordered_map>
+#include <vector>
+#include <array>
+#include <queue>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
 
 using std::array;
 using std::queue;
@@ -141,84 +140,150 @@ struct StateHasher {
 	}
 };
 
-std::vector<char> Get8thSolution(const GameState& state)
+
+struct AStarState {
+	GameState state;
+	int gScore;
+	int fScore;
+
+	AStarState(const GameState& _state, int _gScore, int _fScore) :
+		state(_state),
+		gScore(_gScore),
+		fScore(_fScore)
+	{}
+};
+
+struct AStarStateComparator {
+	bool operator()(const AStarState& state1, const AStarState& state2) const {
+		return state1.fScore > state2.fScore;
+	}
+};
+
+int CalculateManhattanDistance(const GameState& state)
 {
-	queue<GameState> bfsQueue;
-	bfsQueue.push(state);
-	unordered_map<GameState, char, StateHasher> visited;
-	visited[state] = 'S';
-	while (bfsQueue.size() > 0) {
-		GameState current = bfsQueue.front();
-		bfsQueue.pop();
-		if (current.IsFinish()) {
-			break;
-		}
-		if (current.CanMoveLeft()) {
-			GameState newState = current.MoveLeft();
-			if (visited.find(newState) == visited.end()) {
-				visited[newState] = 'R';
-				bfsQueue.push(newState);
-			}
-		}
-		if (current.CanMoveUp()) {
-			GameState newState = current.MoveUp();
-			if (visited.find(newState) == visited.end()) {
-				visited[newState] = 'D';
-				bfsQueue.push(newState);
-			}
-		}
-		if (current.CanMoveRight()) {
-			GameState newState = current.MoveRight();
-			if (visited.find(newState) == visited.end()) {
-				visited[newState] = 'L';
-				bfsQueue.push(newState);
-			}
-		}
-		if (current.CanMoveDown()) {
-			GameState newState = current.MoveDown();
-			if (visited.find(newState) == visited.end()) {
-				visited[newState] = 'U';
-				bfsQueue.push(newState);
-			}
+	int distance = 0;
+	for (int i = 0; i < FieldSize; ++i) {
+		int value = state.GetFieldValue(i);
+		if (value != 0) {
+			int targetX = (value - 1) % SideSize;
+			int targetY = (value - 1) / SideSize;
+			int currentX = i % SideSize;
+			int currentY = i / SideSize;
+			distance += abs(targetX - currentX) + abs(targetY - currentY);
 		}
 	}
+	return distance;
+}
 
-	std::vector<char> moves;
-	GameState current(FinishField);
-	char move = visited[current];
-	while (move != 'S') {
-		moves.push_back(move);
+int CalculateFScore(const GameState& state)
+{
+	int hScore = CalculateManhattanDistance(state);
+	return hScore;
+}
+
+std::vector<char> ReconstructPath(const unordered_map<GameState, char, StateHasher>& cameFrom, const GameState& current)
+{
+	std::vector<char> path;
+	GameState state = current;
+	while (cameFrom.find(state) != cameFrom.end()) {
+		char move = cameFrom.at(state);
+		path.push_back(move);
 		switch (move) {
 		case 'L':
-			current = current.MoveLeft();
+			state = state.MoveLeft();
 			break;
 		case 'U':
-			current = current.MoveUp();
+			state = state.MoveUp();
 			break;
 		case 'R':
-			current = current.MoveRight();
+			state = state.MoveRight();
 			break;
 		case 'D':
-			current = current.MoveDown();
+			state = state.MoveDown();
 			break;
 		}
-		move = visited[current];
+	}
+	std::reverse(path.begin(), path.end());
+	return path;
+}
+
+std::vector<char> Get15thSolution(const GameState& state)
+{
+	std::priority_queue<AStarState, std::vector<AStarState>, AStarStateComparator> openSet;
+	unordered_map<GameState, char, StateHasher> cameFrom;
+	unordered_map<GameState, int, StateHasher> gScore;
+	unordered_map<GameState, int, StateHasher> fScore;
+
+	gScore[state] = 0;
+	fScore[state] = CalculateFScore(state);
+
+	openSet.push(AStarState(state, gScore[state], fScore[state]));
+	while (!openSet.empty()) {
+		GameState current = openSet.top().state;
+		openSet.pop();
+
+		if (current.IsFinish()) {
+			return ReconstructPath(cameFrom, current);
+		}
+
+		if (current.CanMoveLeft()) {
+			GameState newState = current.MoveLeft();
+			int tentativeGScore = gScore[current] + 1;
+			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+				cameFrom[newState] = 'R';
+				gScore[newState] = tentativeGScore;
+				fScore[newState] = tentativeGScore + CalculateFScore(newState);
+				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+			}
+		}
+
+		if (current.CanMoveUp()) {
+			GameState newState = current.MoveUp();
+			int tentativeGScore = gScore[current] + 1;
+			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+				cameFrom[newState] = 'D';
+				gScore[newState] = tentativeGScore;
+				fScore[newState] = tentativeGScore + CalculateFScore(newState);
+				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+			}
+		}
+
+		if (current.CanMoveRight()) {
+			GameState newState = current.MoveRight();
+			int tentativeGScore = gScore[current] + 1;
+			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+				cameFrom[newState] = 'L';
+				gScore[newState] = tentativeGScore;
+				fScore[newState] = tentativeGScore + CalculateFScore(newState);
+				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+			}
+		}
+
+		if (current.CanMoveDown()) {
+			GameState newState = current.MoveDown();
+			int tentativeGScore = gScore[current] + 1;
+			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+				cameFrom[newState] = 'U';
+				gScore[newState] = tentativeGScore;
+				fScore[newState] = tentativeGScore + CalculateFScore(newState);
+				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+			}
+		}
 	}
 
-	return moves;
+	return std::vector<char>();  // No solution found
 }
+
 
 void run(std::istream& input, std::ostream& output) {
 
 	std::array<int, FieldSize> CurrentField;
 	for (size_t i = 0; i < FieldSize; i++) {
 		char field;
-		//input >> field;
-		//CurrentField[i] = static_cast<int>(field);
 		input >> CurrentField[i];
 	}
 	GameState state(CurrentField);
-	std::vector<char> moves = Get8thSolution(state);
+	std::vector<char> moves = Get15thSolution(state);
 
 	output << moves.size() << std::endl;
 	for (char move : moves) {
@@ -242,11 +307,19 @@ void test() {
 		run(input, output);
 		assert(output.str() == "1\nU");
 	}
+	{
+		std::stringstream input;
+		std::stringstream output;
+		input << "8 15 9 0 14 6 5 3 4 12 11 2 10 13 1 7";  // "57\nUU RUR DDD L UUU R D R DD LL UL UU RD RD RD LL UU RU LD LD RR UR U L D R DD LLL U R U L U"
+		run(input, output);
+		assert(output.str() == "57\nUURURDDDLUUURDRDDLLULUURDRDRDLLUURULDLDRRURULDRDDLLLURULU");
+
+	}
 }
 
 int main()
 {
-    test();
+    //test();
     run(std::cin, std::cout);
     return 0;
 }
