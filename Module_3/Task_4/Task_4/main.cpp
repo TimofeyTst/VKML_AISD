@@ -143,12 +143,10 @@ struct StateHasher {
 
 struct AStarState {
 	GameState state;
-	int gScore;
 	int fScore;
 
-	AStarState(const GameState& _state, int _gScore, int _fScore) :
+	AStarState(const GameState& _state, int _fScore) :
 		state(_state),
-		gScore(_gScore),
 		fScore(_fScore)
 	{}
 };
@@ -211,13 +209,11 @@ std::vector<char> Get15thSolution(const GameState& state)
 {
 	std::priority_queue<AStarState, std::vector<AStarState>, AStarStateComparator> openSet;
 	unordered_map<GameState, char, StateHasher> cameFrom;
-	unordered_map<GameState, int, StateHasher> gScore;
 	unordered_map<GameState, int, StateHasher> fScore;
 
-	gScore[state] = 0;
 	fScore[state] = CalculateFScore(state);
 
-	openSet.push(AStarState(state, gScore[state], fScore[state]));
+	openSet.push(AStarState(state, fScore[state]));
 	while (!openSet.empty()) {
 		GameState current = openSet.top().state;
 		openSet.pop();
@@ -228,52 +224,47 @@ std::vector<char> Get15thSolution(const GameState& state)
 
 		if (current.CanMoveLeft()) {
 			GameState newState = current.MoveLeft();
-			int tentativeGScore = gScore[current] + 1;
-			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+			int newFScore = CalculateFScore(newState);
+			if (fScore.find(newState) == fScore.end() || newFScore < fScore[newState]) {
 				cameFrom[newState] = 'R';
-				gScore[newState] = tentativeGScore;
-				fScore[newState] = tentativeGScore + CalculateFScore(newState);
-				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+				fScore[newState] = newFScore;
+				openSet.push(AStarState(newState, fScore[newState]));
 			}
 		}
 
 		if (current.CanMoveUp()) {
 			GameState newState = current.MoveUp();
-			int tentativeGScore = gScore[current] + 1;
-			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+			int newFScore = CalculateFScore(newState);
+			if (fScore.find(newState) == fScore.end() || newFScore < fScore[newState]) {
 				cameFrom[newState] = 'D';
-				gScore[newState] = tentativeGScore;
-				fScore[newState] = tentativeGScore + CalculateFScore(newState);
-				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+				fScore[newState] = newFScore;
+				openSet.push(AStarState(newState, fScore[newState]));
 			}
 		}
 
 		if (current.CanMoveRight()) {
 			GameState newState = current.MoveRight();
-			int tentativeGScore = gScore[current] + 1;
-			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+			int newFScore = CalculateFScore(newState);
+			if (fScore.find(newState) == fScore.end() || newFScore < fScore[newState]) {
 				cameFrom[newState] = 'L';
-				gScore[newState] = tentativeGScore;
-				fScore[newState] = tentativeGScore + CalculateFScore(newState);
-				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+				fScore[newState] = newFScore;
+				openSet.push(AStarState(newState, fScore[newState]));
 			}
 		}
 
 		if (current.CanMoveDown()) {
 			GameState newState = current.MoveDown();
-			int tentativeGScore = gScore[current] + 1;
-			if (gScore.find(newState) == gScore.end() || tentativeGScore < gScore[newState]) {
+			int newFScore = CalculateFScore(newState);
+			if (fScore.find(newState) == fScore.end() || newFScore < fScore[newState]) {
 				cameFrom[newState] = 'U';
-				gScore[newState] = tentativeGScore;
-				fScore[newState] = tentativeGScore + CalculateFScore(newState);
-				openSet.push(AStarState(newState, gScore[newState], fScore[newState]));
+				fScore[newState] = newFScore;
+				openSet.push(AStarState(newState, fScore[newState]));
 			}
 		}
 	}
 
 	return std::vector<char>();  // No solution found
 }
-
 
 void run(std::istream& input, std::ostream& output) {
 
