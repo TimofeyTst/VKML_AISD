@@ -47,40 +47,55 @@ private:
 
 
 int getShortestWay(const IWeightedGraph& graph, int from, int to, int max_count) {
-    int vertexCount = graph.VerticesCount();
+    int n = graph.VerticesCount();
 
+    std::vector<int> minCost(n, std::numeric_limits<int>::max()); // Массив минимальных стоимостей пути до каждой вершины
+    std::vector<int> flightCount(n, max_count + 1); // Массив количества перелетов до каждой вершины
+    minCost[from] = 0; // Стоимость пути из начальной вершины равна 0
 
-    std::vector<int> distances(vertexCount, std::numeric_limits<int>::max());
-    // Очередь с приоритетом для хранения пар (расстояние, вершина)
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
-
-    distances[from] = 0;
+    // Очередь с приоритетом, в которой хранятся пары {стоимость, вершина}
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
     pq.push({ 0, from });
-    int current_count = 0;
 
     while (!pq.empty()) {
-        int currentVertex = pq.top().second;
+        int cost = pq.top().first;
+        int v = pq.top().second;
         pq.pop();
-        current_count += 1;
 
-        // Если мы достигли конечной вершины, то возвращаем расстояние до нее
-        if (currentVertex == to) {
-            return current_count + 1;
+        // Если текущая вершина - целевая и количество перелетов меньше или равно max_count,
+        // то возвращаем минимальную стоимость пути до целевой вершины
+        if (v == to && flightCount[v] <= max_count) {
+            return minCost[v];
         }
 
-        // Проходим по всем соседним вершинам и обновляем расстояния до них
-        for (const auto& edge : graph.GetNextVertices(currentVertex)) {
-            int nextVertex = edge.first;
+        // Если количество перелетов до текущей вершины равно 0, пропускаем ее
+        if (flightCount[v] == 0) {
+            continue;
+        }
+
+        for (const auto& edge : graph.GetNextVertices(v)) {
+            int u = edge.first;
             int weight = edge.second;
 
-            if (distances[currentVertex] + weight < distances[nextVertex]) {
-                distances[nextVertex] = distances[currentVertex] + weight;
-                pq.push({ distances[nextVertex], nextVertex });
+            // Если количество перелетов до следующей вершины будет меньше, обновляем его
+            int nextFlightCount = flightCount[v] - (v != from);
+            if (nextFlightCount < flightCount[u]) {
+                flightCount[u] = nextFlightCount;
+            }
+
+            // Вычисляем стоимость нового пути до следующей вершины
+            int newCost = cost + weight;
+
+            // Если новая стоимость пути меньше текущей минимальной стоимости пути до следующей вершины,
+            // обновляем минимальную стоимость и добавляем вершину в очередь с приоритетом
+            if (newCost < minCost[u] && flightCount[u] >= 0) {
+                minCost[u] = newCost;
+                pq.push({ newCost, u });
             }
         }
     }
 
-    // Если мы не достигли конечной вершины, то возвращаем -1
+    // Если не удалось достичь целевой вершины за указанное количество перелетов, возвращаем -1
     return -1;
 }
 
@@ -108,7 +123,7 @@ void run(std::istream& input, std::ostream& output) {
     }
 
     input >> from >> to;
-    output << getShortestWay(*graph, from, to, max_count) << std::endl;
+    output << getShortestWay(*graph, aim_from-1, aim_to-1, max_count) << std::endl;
 }
 
 void test() {
@@ -117,7 +132,7 @@ void test() {
         std::stringstream output;
         input << "5 7 2 4 1\n1 2 6\n5 1 1\n4 1 9\n4 5 3\n4 3 2\n2 5 7\n3 5 1\n";
         run(input, output);
-        assert(output.str() == "4\n");
+        assert(output.str() == "10\n");
     }
     {
         std::stringstream input;
@@ -130,7 +145,7 @@ void test() {
 
 int main()
 {
-    test();
+    //test();
     run(std::cin, std::cout);
     return 0;
 }
